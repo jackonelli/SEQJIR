@@ -24,7 +24,8 @@ class FileReader:
                 cases_col = col
             elif (temp == 'deaths') or (temp == 'newdeaths'):
                 deaths_col = col
-            elif (temp == 'countries and territories') or (temp == 'countryexp'):
+            elif (temp == 'countries and territories') or (
+                    temp == 'countryexp'):
                 country_col = col
         if (cases_col == -1) or (deaths_col == -1) or (country_col == -1):
             print('Counld not find all columns')
@@ -32,31 +33,31 @@ class FileReader:
             for row in range(1, worksheet.nrows):
                 temp_country = worksheet.cell_value(row, country_col)
                 if temp_country == current_country:
-                    cases = np.append(cases, np.array([worksheet.cell_value(row, cases_col)], dtype=int), 0)
-                    deaths = np.append(deaths, np.array([worksheet.cell_value(row, deaths_col)], dtype=int), 0)
+                    cases = np.append(
+                        cases,
+                        np.array([worksheet.cell_value(row, cases_col)],
+                                 dtype=int), 0)
+                    deaths = np.append(
+                        deaths,
+                        np.array([worksheet.cell_value(row, deaths_col)],
+                                 dtype=int), 0)
                 else:
                     if current_country != '':
-                        dictionary[current_country] = [np.cumsum(np.flip(cases)), np.cumsum(np.flip(deaths))]
+                        dictionary[current_country] = [
+                            np.cumsum(np.flip(cases)),
+                            np.cumsum(np.flip(deaths))
+                        ]
                     if worksheet.cell_value(row, 2) != '':
-                        cases = np.array([worksheet.cell_value(row, cases_col)], dtype=int)
+                        cases = np.array(
+                            [worksheet.cell_value(row, cases_col)], dtype=int)
                     else:
                         cases = np.array([0], dtype=int)
                     if worksheet.cell_value(row, 3) != '':
-                        deaths = np.array([worksheet.cell_value(row, deaths_col)], dtype=int)
+                        deaths = np.array(
+                            [worksheet.cell_value(row, deaths_col)], dtype=int)
                     else:
                         deaths = np.array([0], dtype=int)
                     current_country = temp_country
-        return dictionary
-
-    # Returns dictionary on the form {'Sweden' : int(population size)}
-    @staticmethod
-    def read_population_file(filename):
-        workbook = xlrd.open_workbook(filename)
-        worksheet = workbook.sheet_by_index(0)
-        dictionary = {}
-        for row in range(1, worksheet.nrows):
-            dictionary[worksheet.cell_value(row, 0)] = int(worksheet.cell_value(row, 1))
-        return dictionary
         return dictionary
 
     def population(self, country):

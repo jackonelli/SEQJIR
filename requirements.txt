@@ -2,4 +2,3 @@ xlrd
 numpy
 matplotlib
 pandas
-pyfunctional

@@ -35,6 +35,10 @@ class SEQIJR:
         self.d_1 = d_1
         self.d_2 = d_2
 
+    def __str__(self):
+        return "{}\n\tR_0 = {}\n\tR_c = {}".format("SEQIJR", self.R_0(),
+                                                   self.R_c())
+
     def derivative(self, y):
         # S:0, E:1, Q:2, I:3, J:4, R:5
         Sp = self.Pi - self.b * y[0] * (
