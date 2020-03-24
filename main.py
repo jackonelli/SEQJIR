@@ -28,6 +28,7 @@ def main():
     if plot_L:
         plot_l(x, aj_p, x_confirmed, y_confirmed)
     else:
+        # t_end has been factored out, but I'm not sure what this plot does.
         plot_not_l(country, model, x, y_1, x_confirmed, y_confirmed,
                    resolution, t_end, j_p)
 
