@@ -19,51 +19,46 @@ def main():
     model = init_model(country.population, config)
     print(model)
 
-    S_0 = model.N
-    E_0 = 0
-    Q_0 = 0
-    I_0 = 1
-    J_0 = 0
-    R_0 = 0
-    aJ_0 = 0
-    aIJ_0 = 1
-    aD_0 = 0
+    y_0 = init_y(model.N)
+    resolution = 0.5
 
-    y_0 = np.array([S_0, E_0, Q_0, I_0, J_0, R_0, aJ_0, aIJ_0, aD_0],
-                   dtype=float).transpose()
-
-    h = 1 / 2
-    x_1, S_p_1, E_p_1, Q_p_1, I_p_1, J_p_1, R_p_1, aJ_p_1, aIJ_p_1, aD_p_1 = model.prediction(
-        y_0, 0, 365, h)
-
-    m = np.argmax(aJ_p_1 > min(y_confirmed))
-
-    y_0 = np.array([
-        S_p_1[m], E_p_1[m], Q_p_1[m], I_p_1[m], J_p_1[m], R_p_1[m], aJ_p_1[m],
-        aIJ_p_1[m], aD_p_1[m]
-    ],
-                   dtype=float).transpose()
-
-    P = 1
-
-    t_start = min(country.days_to_ind())
-    t_end = max(country.days_to_ind()) + P
-
-    x, S_p, E_p, Q_p, I_p, J_p, R_p, aJ_p, aIJ_p, aD_p = model.prediction(
-        y_0, t_start, t_end, h)
-
-    y_1 = np.array([
-        S_p[m], E_p[m], Q_p[m], I_p[m], J_p[m], R_p[m], aJ_p[m], aIJ_p[m],
-        aD_p[m]
-    ],
-                   dtype=float).transpose()
+    x, y_1, aj_p, j_p = predictions(model, country, y_0, 0, 365, resolution)
 
     plot_L = True
     if plot_L:
-        plot_l(x, aJ_p, x_confirmed, y_confirmed)
+        plot_l(x, aj_p, x_confirmed, y_confirmed)
     else:
-        plot_not_l(country, model, x, y_1, x_confirmed, y_confirmed, h, t_end,
-                   J_p)
+        plot_not_l(country, model, x, y_1, x_confirmed, y_confirmed,
+                   resolution, t_end, j_p)
+
+
+def predictions(model, country, y_0, start, end, resolution):
+    """Step-wise prediction"""
+    _, s_p_1, e_p_1, q_p_1, i_p_1, j_p_1, r_p_1, aj_p_1, aij_p_1, ad_p_1 = model.prediction(
+        y_0, start, end, resolution)
+
+    m = np.argmax(aj_p_1 > min(country.confirmed))
+
+    y_0 = np.array([
+        s_p_1[m], e_p_1[m], q_p_1[m], i_p_1[m], j_p_1[m], r_p_1[m], aj_p_1[m],
+        aij_p_1[m], ad_p_1[m]
+    ],
+                   dtype=float).transpose()
+
+    days_ahead = 1
+
+    t_start = min(country.days_to_ind())
+    t_end = max(country.days_to_ind()) + days_ahead
+
+    x, s_p, e_p, q_p, i_p, j_p, r_p, aj_p, aij_p, ad_p = model.prediction(
+        y_0, t_start, t_end, resolution)
+
+    y_1 = np.array([
+        s_p[m], e_p[m], q_p[m], i_p[m], j_p[m], r_p[m], aj_p[m], aij_p[m],
+        ad_p[m]
+    ],
+                   dtype=float).transpose()
+    return x, y_1, aj_p, j_p
 
 
 def init_model(population: int, config: dict):
@@ -85,6 +80,22 @@ def init_model(population: int, config: dict):
                   k_2=config["k_2"],
                   d_1=config["d_1"],
                   d_2=config["d_1"])
+
+
+def init_y(population: int):
+    """Initialise"""
+    s_0 = population
+    e_0 = 0
+    q_0 = 0
+    i_0 = 1
+    j_0 = 0
+    r_0 = 0
+    aj_0 = 0
+    aij_0 = 1
+    ad_0 = 0
+
+    return np.array([s_0, e_0, q_0, i_0, j_0, r_0, aj_0, aij_0, ad_0],
+                    dtype=float).transpose()
 
 
 def plot_l(x, aJ_p, x_confirmed, y_confirmed):
