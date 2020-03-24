@@ -1,61 +1,22 @@
 """Test script"""
+from pathlib import Path
 import numpy as np
 import matplotlib.pyplot as plt
 from SEQIJR import SEQIJR
 import data_api
-
-
-def init_model(population: int):
-    """Create model
-    TODO: This should be read from some config
-    """
-
-    N = .5 * population
-    Pi = 0
-    mu = 1 / (80 * 365)  # 1/(80*365) (average age in days)^(-1)
-    b = .8
-    e_E = 0
-    e_Q = 0
-    e_J = 0.05
-    g_1 = 1 / 19
-    g_2 = 1 / 7
-    s_1 = 1 / 14
-    s_2 = 1 / 7
-    k_1 = 1 / 3
-    k_2 = 1 / 14
-    d_1 = 0.05 / 7
-    d_2 = 0.03 / 7
-
-    return SEQIJR(N, Pi, mu, b, e_E, e_Q, e_J, g_1, g_2, s_1, s_2, k_1, k_2,
-                  d_1, d_2)
-
-
-def plot_l(x, aJ_p, x_confirmed, y_confirmed):
-    plt.plot(x, aJ_p)
-    plt.plot(x_confirmed, y_confirmed, "bo", fillstyle="none")
-    plt.show()
-
-
-def plot_not_l(country, model, x, y_1, x_confirmed, y_confimed, h, t_end, J_p):
-    m = int(max(country.days_to_ind()) / h)
-    model.g_1 = 1
-    t_start2 = max(country.days_to_ind())
-    x2, S_p2, E_p2, Q_p2, I_p2, J_p2, R_p2, aJ_p2, aIJ_p2, aD_p2 = model.prediction(
-        y_1, t_start2, t_end, h)
-    plt.plot([min(x), max(x)], [571 * 1.5, 571 * 1.5])
-    plt.plot(x, 0.05 * J_p)
-    plt.plot(x2, 0.05 * J_p2)
-    plt.show()
+import utils
 
 
 def main():
     """Main entrypoint"""
+    config = utils.read_config("config.json")
+    print(config)
     country = data_api.country_data("Italy")
     print(country)
     x_confirmed = country.days_to_ind()
     y_confirmed = country.confirmed
 
-    model = init_model(country.population)
+    model = init_model(country.population, config)
     print(model)
 
     S_0 = model.N
@@ -103,6 +64,45 @@ def main():
     else:
         plot_not_l(country, model, x, y_1, x_confirmed, y_confirmed, h, t_end,
                    J_p)
+
+
+def init_model(population: int, config: dict):
+    """Create model
+    """
+
+    return SEQIJR(N=config["population_factor"] * population,
+                  Pi=config["Pi"],
+                  mu=config["inv_avg_age_in_days"],
+                  b=config["b"],
+                  e_E=config["e_E"],
+                  e_Q=config["e_Q"],
+                  e_J=config["e_J"],
+                  g_1=config["g_1"],
+                  g_2=config["g_2"],
+                  s_1=config["s_1"],
+                  s_2=config["s_2"],
+                  k_1=config["k_1"],
+                  k_2=config["k_2"],
+                  d_1=config["d_1"],
+                  d_2=config["d_1"])
+
+
+def plot_l(x, aJ_p, x_confirmed, y_confirmed):
+    plt.plot(x, aJ_p)
+    plt.plot(x_confirmed, y_confirmed, "bo", fillstyle="none")
+    plt.show()
+
+
+def plot_not_l(country, model, x, y_1, x_confirmed, y_confimed, h, t_end, J_p):
+    m = int(max(country.days_to_ind()) / h)
+    model.g_1 = 1
+    t_start2 = max(country.days_to_ind())
+    x2, S_p2, E_p2, Q_p2, I_p2, J_p2, R_p2, aJ_p2, aIJ_p2, aD_p2 = model.prediction(
+        y_1, t_start2, t_end, h)
+    plt.plot([min(x), max(x)], [571 * 1.5, 571 * 1.5])
+    plt.plot(x, 0.05 * J_p)
+    plt.plot(x2, 0.05 * J_p2)
+    plt.show()
 
 
 if __name__ == "__main__":
